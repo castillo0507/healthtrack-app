@@ -7,7 +7,9 @@ import '../models/health_category.dart';
 import '../widgets/health_metric_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final Function(int)? onNavigate;
+  
+  const HomeScreen({super.key, this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -159,16 +161,20 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           TextButton.icon(
-                            onPressed: () {},
-                            icon: Icon(
+                            onPressed: () {
+                              if (onNavigate != null) {
+                                onNavigate!(1); // Navigate to Insights tab
+                              }
+                            },
+                            icon: const Icon(
                               Icons.trending_up,
                               size: 16,
-                              color: const Color(0xFF3366FF),
+                              color: Color(0xFF3366FF),
                             ),
-                            label: Text(
+                            label: const Text(
                               'View Insights',
                               style: TextStyle(
-                                color: const Color(0xFF3366FF),
+                                color: Color(0xFF3366FF),
                                 fontSize: 13,
                               ),
                             ),
@@ -195,7 +201,11 @@ class HomeScreen extends StatelessWidget {
                               context,
                               icon: Icons.add,
                               label: 'Log Activity',
-                              onTap: () {},
+                              onTap: () {
+                                if (onNavigate != null) {
+                                  onNavigate!(2); // Navigate to Add Entry tab
+                                }
+                              },
                             ).animate().fadeIn(delay: 900.ms).slideX(begin: -0.1),
                           ),
                           const SizedBox(width: 16),
@@ -204,8 +214,77 @@ class HomeScreen extends StatelessWidget {
                               context,
                               icon: Icons.trending_up,
                               label: 'View Trends',
-                              onTap: () {},
+                              onTap: () {
+                                if (onNavigate != null) {
+                                  onNavigate!(1); // Navigate to Insights tab
+                                }
+                              },
                             ).animate().fadeIn(delay: 950.ms).slideX(begin: 0.1),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Second row of quick actions
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildQuickAction(
+                              context,
+                              icon: Icons.water_drop,
+                              label: '+250ml Water',
+                              onTap: () async {
+                                await healthProvider.quickAddWater(250);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('Added 250ml water!'),
+                                      backgroundColor: Colors.cyan[600],
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                            ).animate().fadeIn(delay: 1000.ms).slideX(begin: -0.1),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildQuickAction(
+                              context,
+                              icon: Icons.directions_walk,
+                              label: '+1000 Steps',
+                              onTap: () async {
+                                await healthProvider.quickAddSteps(1000);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('Added 1000 steps!'),
+                                      backgroundColor: Colors.blue[600],
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                            ).animate().fadeIn(delay: 1050.ms).slideX(begin: 0.1),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Third row - View Report
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildQuickAction(
+                              context,
+                              icon: Icons.assessment,
+                              label: 'View Report',
+                              onTap: () {
+                                if (onNavigate != null) {
+                                  onNavigate!(3); // Navigate to Report tab
+                                }
+                              },
+                            ).animate().fadeIn(delay: 1100.ms).slideY(begin: 0.1),
                           ),
                         ],
                       ),

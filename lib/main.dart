@@ -119,8 +119,14 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
+  void _navigateToTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  List<Widget> get _screens => [
+    HomeScreen(onNavigate: _navigateToTab),
     const InsightsScreen(),
     const AddEntryScreen(),
     const ReportScreen(),
