@@ -1,0 +1,430 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../providers/health_provider.dart';
+import '../models/health_category.dart';
+import '../widgets/health_metric_card.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<HealthProvider>(
+      builder: (context, healthProvider, child) {
+        final summary = healthProvider.todaySummary;
+        final enabledCategories = healthProvider.enabledCategories;
+        final streak = healthProvider.streak;
+        final progress = healthProvider.calculateOverallProgress();
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F7FA),
+          body: CustomScrollView(
+            slivers: [
+              // App Bar
+              SliverAppBar(
+                expandedHeight: 180,
+                floating: false,
+                pinned: true,
+                backgroundColor: const Color(0xFF3366FF),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF3366FF),
+                          Color(0xFF5B8DEF),
+                        ],
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.person_outline,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Hello, User!',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now()),
+                                          style: TextStyle(
+                                            color: Colors.white.withOpacity(0.8),
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            // Stats Bar
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildStatItem(
+                                    'Active Categories',
+                                    '${enabledCategories.length}',
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 40,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  _buildStatItem(
+                                    'Today\'s Progress',
+                                    '${(progress * 100).toInt()}%',
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 40,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  _buildStatItem(
+                                    'Streak',
+                                    '$streak days',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Content
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Today's Overview Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Today\'s Overview',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.trending_up,
+                              size: 16,
+                              color: const Color(0xFF3366FF),
+                            ),
+                            label: Text(
+                              'View Insights',
+                              style: TextStyle(
+                                color: const Color(0xFF3366FF),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ).animate().fadeIn(duration: 400.ms),
+                      const SizedBox(height: 16),
+                      // Metrics Grid
+                      _buildMetricsGrid(context, healthProvider, summary),
+                      const SizedBox(height: 24),
+                      // Quick Actions
+                      Text(
+                        'Quick Actions',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ).animate().fadeIn(delay: 800.ms),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildQuickAction(
+                              context,
+                              icon: Icons.add,
+                              label: 'Log Activity',
+                              onTap: () {},
+                            ).animate().fadeIn(delay: 900.ms).slideX(begin: -0.1),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildQuickAction(
+                              context,
+                              icon: Icons.trending_up,
+                              label: 'View Trends',
+                              onTap: () {},
+                            ).animate().fadeIn(delay: 950.ms).slideX(begin: 0.1),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Privacy Notice
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.lock_outline,
+                              color: Colors.orange[700],
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    color: Colors.orange[900],
+                                    fontSize: 13,
+                                  ),
+                                  children: const [
+                                    TextSpan(
+                                      text: 'Privacy First: ',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    TextSpan(
+                                      text: 'All your health data is stored locally on your device. No data is sent to external servers.',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn(delay: 1000.ms),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.8),
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricsGrid(
+    BuildContext context,
+    HealthProvider provider,
+    dynamic summary,
+  ) {
+    final enabledCategories = provider.enabledCategories;
+
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.3,
+      children: enabledCategories.asMap().entries.map((entry) {
+        final index = entry.key;
+        final category = entry.value;
+        return _buildMetricCardForCategory(
+          context,
+          category,
+          summary,
+          index,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMetricCardForCategory(
+    BuildContext context,
+    HealthCategory category,
+    dynamic summary,
+    int index,
+  ) {
+    // Get the provider for goals and progress calculation
+    final provider = Provider.of<HealthProvider>(context, listen: false);
+    final goals = provider.goals;
+    
+    String value = '';
+    String subtitle = '';
+    double progress = provider.getProgressForCategory(category.type);
+
+    switch (category.type) {
+      case HealthCategoryType.vitalSigns:
+        final temp = summary?.temperature ?? 0.0;
+        final systolic = summary?.systolicBP ?? 0;
+        final diastolic = summary?.diastolicBP ?? 0;
+        value = temp > 0 ? '${temp.toStringAsFixed(1)}°F' : '--°F';
+        subtitle = systolic > 0 ? 'BP: $systolic/$diastolic' : 'No data yet';
+        break;
+      case HealthCategoryType.nutrition:
+        final calories = summary?.nutritionCalories ?? 0;
+        value = calories > 0 ? '$calories cal' : '0 cal';
+        subtitle = '/ ${goals.caloriesGoal} cal goal';
+        break;
+      case HealthCategoryType.hydration:
+        final water = summary?.waterIntake ?? 0.0;
+        value = '${water.toStringAsFixed(1)} L';
+        subtitle = '/ ${goals.waterGoal} L goal';
+        break;
+      case HealthCategoryType.heartHealth:
+        final hr = summary?.heartRate ?? 0;
+        final resting = summary?.restingHeartRate ?? 0;
+        value = hr > 0 ? '$hr BPM' : '-- BPM';
+        subtitle = resting > 0 ? 'Resting: $resting BPM' : 'No data yet';
+        break;
+      case HealthCategoryType.physicalActivity:
+        final steps = summary?.steps ?? 0;
+        value = '$steps';
+        subtitle = '/ ${goals.stepsGoal} goal';
+        break;
+      case HealthCategoryType.sleepTracking:
+        final sleep = summary?.sleepHours ?? 0.0;
+        value = sleep > 0 ? '${sleep.toStringAsFixed(1)} hrs' : '-- hrs';
+        subtitle = '/ ${goals.sleepGoal} hrs goal';
+        break;
+      case HealthCategoryType.mentalWellness:
+        final mood = summary?.mood ?? 'Not tracked';
+        final meditation = summary?.meditationMinutes ?? 0;
+        value = mood;
+        subtitle = meditation > 0 ? '$meditation min meditation' : 'Track your mood';
+        break;
+      case HealthCategoryType.exerciseWorkouts:
+        final workout = summary?.workoutMinutes ?? 0;
+        final type = summary?.workoutType ?? '';
+        value = '$workout min';
+        subtitle = type.isNotEmpty ? type : '/ ${goals.workoutMinutesGoal} min goal';
+        break;
+    }
+
+    return HealthMetricCard(
+      title: category.name == 'Physical Activity' ? 'Steps' : 
+             category.name == 'Exercise & Workouts' ? 'Workout' : 
+             category.name,
+      value: value,
+      subtitle: subtitle,
+      icon: category.icon,
+      color: category.color,
+      progress: progress,
+    ).animate().fadeIn(delay: Duration(milliseconds: 400 + (index * 100))).scale(
+      begin: const Offset(0.95, 0.95),
+      delay: Duration(milliseconds: 400 + (index * 100)),
+    );
+  }
+
+  Widget _buildQuickAction(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: const Color(0xFF3366FF),
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
